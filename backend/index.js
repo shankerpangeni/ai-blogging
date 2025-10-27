@@ -8,7 +8,11 @@ import userRoutes from './src/routes/user.route.js';
 import chatRoutes from './src/routes/chat.route.js';
 import aiRoutes from './src/routes/interaction.route.js';
 
-dotenv.config();
+if (process.env.NODE_ENV !== "production") {
+  dotenv.config();
+}
+
+
 const app = express();
 
 const corsOptions = {
