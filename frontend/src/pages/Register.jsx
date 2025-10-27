@@ -33,7 +33,7 @@ const Register = () => {
       if (res.data.success) {
         alert("Registration successful! Please login.");
         setFormData({ fullname: "", email: "", phoneNumber: "", password: "" });
-        navigate('/login')
+        navigate('/')
         
       } else {
         setError(res.data.message || "Something went wrong");
@@ -111,7 +111,7 @@ const Register = () => {
             className="text-purple-600 cursor-pointer hover:underline font-medium"
             
           >
-            <Link to="/login">Login</Link>
+            <Link to="/">Login</Link>
             
           </span>
         </p>
