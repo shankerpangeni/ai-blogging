@@ -17,7 +17,7 @@ const Dashboard = () => {
   useEffect(() => {
     const fetchChats = async () => {
       try {
-        const res = await axios.get("http://localhost:8000/api/v1/chat/", { withCredentials: true });
+        const res = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/v1/chat/`, { withCredentials: true });
         setChats(res.data.chats);
         if (res.data.chats.length > 0) setActiveChat(res.data.chats[0]);
       } catch (err) {
@@ -31,7 +31,7 @@ const Dashboard = () => {
     if (!activeChat) return;
     const fetchMessages = async () => {
       try {
-        const res = await axios.get(`http://localhost:8000/api/v1/chat/${activeChat._id}`, { withCredentials: true });
+        const res = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/v1/chat/${activeChat._id}`, { withCredentials: true });
         setMessages(res.data.chat.interactions || []);
         scrollToBottom();
       } catch (err) {
@@ -55,7 +55,7 @@ const Dashboard = () => {
 
     try {
       const res = await axios.post(
-        `http://localhost:8000/api/v1/interaction/${activeChat._id}/message`,
+        `${process.env.REACT_APP_BACKEND_URL}/api/v1/interaction/${activeChat._id}/message`,
         { prompt },
         { withCredentials: true }
       );
@@ -81,7 +81,7 @@ const Dashboard = () => {
 
   const handleNewChat = async () => {
     try {
-      const res = await axios.post("http://localhost:8000/api/v1/chat/", { title: "New Chat" }, { withCredentials: true });
+      const res = await axios.post(`${process.env.REACT_APP_BACKEND_URL}/api/v1/chat/`, { title: "New Chat" }, { withCredentials: true });
       setChats((prev) => [res.data.chat, ...prev]);
       setActiveChat(res.data.chat);
       setMessages([]);
@@ -92,7 +92,7 @@ const Dashboard = () => {
 
   const handleDeleteChat = async (chatId) => {
     try {
-      await axios.delete(`http://localhost:8000/api/v1/chat/${chatId}`, { withCredentials: true });
+      await axios.delete(`${process.env.REACT_APP_BACKEND_URL}/api/v1/chat/${chatId}`, { withCredentials: true });
       setChats((prev) => prev.filter((c) => c._id !== chatId));
       if (activeChat?._id === chatId) {
         setActiveChat(chats.filter((c) => c._id !== chatId)[0] || null);
@@ -106,7 +106,7 @@ const Dashboard = () => {
 
   const handleLogout = async () => {
     try {
-      await axios.get("http://localhost:8000/api/v1/user/logout", {}, { withCredentials: true });
+      await axios.get(`{process.env.REACT_APP_BACKEND_URL}/api/v1/user/logout`, {}, { withCredentials: true });
       window.location.href = "/login";
     } catch (err) {
       console.error("Logout failed", err);
