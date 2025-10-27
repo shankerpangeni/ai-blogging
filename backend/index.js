@@ -16,7 +16,7 @@ if (process.env.NODE_ENV !== "production") {
 const app = express();
 
 const corsOptions = {
-    origin: 'http://localhost:5173',
+    origin: 'https://ai-blogging-frontend.onrender.com',
     credentials:true,
 };
 
