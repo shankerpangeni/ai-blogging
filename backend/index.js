@@ -25,6 +25,9 @@ app.use(express.json());
 app.use(cors(corsOptions));
 app.use(cookieParser());
 
+app.get('/', (req, res) => {
+    res.send('backend is running');
+})
 ///user api here
 app.use('/api/v1/user',userRoutes );
 app.use('/api/v1/chat',chatRoutes);
