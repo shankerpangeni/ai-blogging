@@ -16,13 +16,18 @@ if (process.env.NODE_ENV !== "production") {
 const app = express();
 
 const corsOptions = {
-    origin: "https://ai-blogging-frontend.onrender.com",
-    credentials:true,
+  origin: "https://ai-blogging-frontend.onrender.com",
+  credentials: true,
+  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization"]
 };
+
+app.use(cors(corsOptions));
+app.options("*", cors(corsOptions));
 
 app.use(express.json());
 
-app.use(cors(corsOptions));
+
 app.use(cookieParser());
 
 app.get('/', (req, res) => {
