@@ -109,7 +109,7 @@ const Dashboard = () => {
   const handleLogout = async () => {
     try {
       await axios.get(`${import.meta.env.VITE_BACKEND_URL}/api/v1/user/logout`, {}, { withCredentials: true });
-      navigate('/login');
+      navigate('/');
     } catch (err) {
       console.error("Logout failed", err);
     }
