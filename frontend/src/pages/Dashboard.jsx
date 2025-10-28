@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import axios from "axios";
+import { useNavigate } from "react-router-dom";
 
 const Dashboard = () => {
   const [chats, setChats] = useState([]);
@@ -11,6 +12,7 @@ const Dashboard = () => {
   const [chatOptions, setChatOptions] = useState(null);
   const [sidebarOpen, setSidebarOpen] = useState(false); // mobile toggle
   const messagesEndRef = useRef(null);
+  const navigate = useNavigate();
 
   const scrollToBottom = () => messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
 
@@ -107,7 +109,7 @@ const Dashboard = () => {
   const handleLogout = async () => {
     try {
       await axios.get(`${import.meta.env.VITE_BACKEND_URL}/api/v1/user/logout`, {}, { withCredentials: true });
-      window.location.href = "/login";
+      navigate('/login');
     } catch (err) {
       console.error("Logout failed", err);
     }
