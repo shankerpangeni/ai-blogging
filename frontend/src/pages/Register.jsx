@@ -25,7 +25,7 @@ const Register = () => {
 
     try {
       const res = await axios.post(
-        `${process.env.REACT_APP_BACKEND_URL}/api/v1/user/register`,
+        `${process.env.VITE_BACKEND_URL}/api/v1/user/register`,
         formData,
         { headers: { "Content-Type": "application/json" }, withCredentials: true }
       );

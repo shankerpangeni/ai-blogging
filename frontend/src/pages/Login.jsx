@@ -21,7 +21,7 @@ setLoading(true);
 
 try {
   const res = await axios.post(
-    `${process.env.REACT_APP_BACKEND_URL}/api/v1/user/login`,
+    `${process.env.VITE_BACKEND_URL}/api/v1/user/login`,
     formData,
     {
       headers: { "Content-Type": "application/json" },
