@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useRef } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 
 const Dashboard = () => {
   const [chats, setChats] = useState([]);
@@ -10,30 +12,42 @@ const Dashboard = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [chatOptions, setChatOptions] = useState(null);
-  const [sidebarOpen, setSidebarOpen] = useState(false); // mobile toggle
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const messagesEndRef = useRef(null);
   const navigate = useNavigate();
 
-  const scrollToBottom = () => messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  // Auto-scroll to bottom when messages update
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  };
 
+  // Fetch chats on load
   useEffect(() => {
     const fetchChats = async () => {
       try {
-        const res = await axios.get(`${import.meta.env.VITE_BACKEND_URL}/api/v1/chat/`, { withCredentials: true });
+        const res = await axios.get(
+          `${import.meta.env.VITE_BACKEND_URL}/api/v1/chat/`,
+          { withCredentials: true }
+        );
         setChats(res.data.chats);
         if (res.data.chats.length > 0) setActiveChat(res.data.chats[0]);
       } catch (err) {
         console.error("Error fetching chats:", err);
+        setError("Failed to load chats");
       }
     };
     fetchChats();
   }, []);
 
+  // Fetch messages of the active chat
   useEffect(() => {
     if (!activeChat) return;
     const fetchMessages = async () => {
       try {
-        const res = await axios.get(`${import.meta.env.VITE_BACKEND_URL}/api/v1/chat/${activeChat._id}`, { withCredentials: true });
+        const res = await axios.get(
+          `${import.meta.env.VITE_BACKEND_URL}/api/v1/chat/${activeChat._id}`,
+          { withCredentials: true }
+        );
         setMessages(res.data.chat.interactions || []);
         scrollToBottom();
       } catch (err) {
@@ -43,15 +57,21 @@ const Dashboard = () => {
     fetchMessages();
   }, [activeChat]);
 
+  // Handle input change
   const handlePromptChange = (e) => setPrompt(e.target.value);
 
+  // Handle sending message
   const handleSend = async (e) => {
     e.preventDefault();
     if (!prompt || !activeChat) return;
 
     setLoading(true);
     setError(null);
+
+    // Show user's prompt
     setMessages((prev) => [...prev, { role: "user", prompt }]);
+
+    // Temporary loading message
     setMessages((prev) => [...prev, { role: "assistant", response: "..." }]);
     scrollToBottom();
 
@@ -61,19 +81,31 @@ const Dashboard = () => {
         { prompt },
         { withCredentials: true }
       );
+
       if (res.data.success) {
+        // Replace "..." with AI response
         setMessages((prev) =>
           prev.map((msg) =>
-            msg.role === "assistant" && msg.response === "..." ? { ...msg, response: res.data.aiResponse } : msg
+            msg.role === "assistant" && msg.response === "..."
+              ? { ...msg, response: res.data.aiResponse }
+              : msg
           )
         );
       } else {
         setError(res.data.message || "AI generation failed");
-        setMessages((prev) => prev.filter((msg) => !(msg.role === "assistant" && msg.response === "...")));
+        setMessages((prev) =>
+          prev.filter(
+            (msg) => !(msg.role === "assistant" && msg.response === "...")
+          )
+        );
       }
     } catch (err) {
       setError(err.response?.data?.message || "Request failed");
-      setMessages((prev) => prev.filter((msg) => !(msg.role === "assistant" && msg.response === "...")));
+      setMessages((prev) =>
+        prev.filter(
+          (msg) => !(msg.role === "assistant" && msg.response === "...")
+        )
+      );
     } finally {
       setPrompt("");
       setLoading(false);
@@ -81,9 +113,14 @@ const Dashboard = () => {
     }
   };
 
+  // Create new chat
   const handleNewChat = async () => {
     try {
-      const res = await axios.post(`${import.meta.env.VITE_BACKEND_URL}/api/v1/chat/`, { title: "New Chat" }, { withCredentials: true });
+      const res = await axios.post(
+        `${import.meta.env.VITE_BACKEND_URL}/api/v1/chat/`,
+        { title: "New Chat" },
+        { withCredentials: true }
+      );
       setChats((prev) => [res.data.chat, ...prev]);
       setActiveChat(res.data.chat);
       setMessages([]);
@@ -92,9 +129,13 @@ const Dashboard = () => {
     }
   };
 
+  // Delete chat
   const handleDeleteChat = async (chatId) => {
     try {
-      await axios.delete(`${import.meta.env.VITE_BACKEND_URL}/api/v1/chat/${chatId}`, { withCredentials: true });
+      await axios.delete(
+        `${import.meta.env.VITE_BACKEND_URL}/api/v1/chat/${chatId}`,
+        { withCredentials: true }
+      );
       setChats((prev) => prev.filter((c) => c._id !== chatId));
       if (activeChat?._id === chatId) {
         setActiveChat(chats.filter((c) => c._id !== chatId)[0] || null);
@@ -106,12 +147,15 @@ const Dashboard = () => {
     }
   };
 
+  // Logout user
   const handleLogout = async () => {
     try {
-      await axios.get(`${import.meta.env.VITE_BACKEND_URL}/api/v1/user/logout`, {}, { withCredentials: true });
-      navigate('/');
+      await axios.get(`${import.meta.env.VITE_BACKEND_URL}/api/v1/user/logout`, {
+        withCredentials: true,
+      });
+      navigate("/");
     } catch (err) {
-      console.error("Logout failed", err);
+      console.error("Logout failed:", err);
     }
   };
 
@@ -131,25 +175,37 @@ const Dashboard = () => {
           {sidebarOpen ? "Close" : "Menu"}
         </button>
 
-        <button onClick={handleNewChat} className="bg-gray-700 hover:bg-gray-600 p-2 rounded font-semibold">
+        <button
+          onClick={handleNewChat}
+          className="bg-gray-700 hover:bg-gray-600 p-2 rounded font-semibold"
+        >
           + New Chat
         </button>
 
+        {/* Chat list */}
         <div className="flex-1 flex flex-col gap-2 mt-4 overflow-y-auto">
           {chats.map((chat) => (
             <div key={chat._id} className="flex justify-between items-center">
               <button
                 onClick={() => setActiveChat(chat)}
                 className={`text-left p-2 rounded flex-1 text-sm ${
-                  activeChat?._id === chat._id ? "bg-gray-600" : "hover:bg-gray-700"
+                  activeChat?._id === chat._id
+                    ? "bg-gray-600"
+                    : "hover:bg-gray-700"
                 }`}
               >
-                {chat.title.length > 15 ? chat.title.slice(0, 15) + "..." : chat.title}
+                {chat.title.length > 15
+                  ? chat.title.slice(0, 15) + "..."
+                  : chat.title}
               </button>
 
               <div className="relative">
                 <button
-                  onClick={() => setChatOptions((prev) => (prev === chat._id ? null : chat._id))}
+                  onClick={() =>
+                    setChatOptions((prev) =>
+                      prev === chat._id ? null : chat._id
+                    )
+                  }
                   className="px-2 py-1 hover:bg-gray-700 rounded"
                 >
                   ...
@@ -179,7 +235,12 @@ const Dashboard = () => {
       </div>
 
       {/* Overlay for mobile */}
-      {sidebarOpen && <div className="fixed inset-0 bg-black opacity-30 sm:hidden" onClick={() => setSidebarOpen(false)} />}
+      {sidebarOpen && (
+        <div
+          className="fixed inset-0 bg-black opacity-30 sm:hidden"
+          onClick={() => setSidebarOpen(false)}
+        />
+      )}
 
       {/* Chat Area */}
       <div className="flex-1 flex flex-col p-2 sm:p-4 ml-0 sm:ml-64">
@@ -190,16 +251,27 @@ const Dashboard = () => {
               className={`mb-3 max-w-xl p-3 rounded-lg ${
                 msg.role === "user"
                   ? "bg-purple-600 text-white self-end"
-                  : "bg-gray-200 text-black self-start flex items-center gap-2"
+                  : "bg-gray-200 text-black self-start prose prose-sm max-w-none"
               }`}
             >
-              {msg.response === "..." ? <span className="animate-pulse">AI is typing...</span> : msg.role === "user" ? msg.prompt : msg.response}
+              {msg.response === "..." ? (
+                <span className="animate-pulse">AI is typing...</span>
+              ) : msg.role === "user" ? (
+                <p>{msg.prompt}</p>
+              ) : (
+                <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                  {msg.response}
+                </ReactMarkdown>
+              )}
             </div>
           ))}
           <div ref={messagesEndRef} />
         </div>
 
-        <form onSubmit={handleSend} className="flex gap-2 items-center border-t border-gray-300 pt-2">
+        <form
+          onSubmit={handleSend}
+          className="flex gap-2 items-center border-t border-gray-300 pt-2"
+        >
           <input
             type="text"
             placeholder="Type your message..."
